@@ -1,0 +1,64 @@
+scalar Time
+
+type Post {
+    id: ID!
+    title: String!
+    body: String!
+    author: String!
+    commentsClosed: Boolean!
+    createdAt: Time!
+    commentsCount: Int!
+}
+
+type Comment {
+    id: ID!
+    postID: ID!
+    parentID: ID!
+    author: String!
+    body: String!
+    depth: Int!
+    createdAt: Time!
+}
+
+
+type PageInfo {
+    endCursor: String!
+    hasNextPage: Boolean!
+}
+
+type CommentEdge {
+    cursor: String! # абсолютная позиция комментария в списке всех комментариев
+    node: Comment!
+}
+
+type CommentPage {
+    edges: [CommentEdge!]!
+    pageInfo: PageInfo!
+}
+
+
+type Query {
+    posts: [Post!]!
+    post(id: ID!): Post
+    comments(
+        postId: ID!
+        parentId: ID!
+        after: String
+        first: Int = 20
+    ): CommentPage!
+}
+
+type Mutation {
+  createPost(title: String!, body: String!, author: String!): Post!
+  toggleCommentsClosed(postId: ID!, closed: Boolean!): Post!
+  addComment(
+    postId: ID!,
+    parentId: ID,
+    body: String!,
+    author: String!
+  ): Comment!
+}
+
+ type Subscription {
+  commentAdded(postId: ID!): Comment!
+}
