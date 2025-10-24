@@ -13,7 +13,7 @@ type Post {
 type Comment {
     id: ID!
     postID: ID!
-    parentID: ID!
+    parentID: ID
     author: String!
     body: String!
     depth: Int!
@@ -22,7 +22,7 @@ type Comment {
 
 
 type PageInfo {
-    endCursor: String!
+    endCursor: String
     hasNextPage: Boolean!
 }
 
@@ -49,16 +49,16 @@ type Query {
 }
 
 type Mutation {
-  createPost(title: String!, body: String!, author: String!): Post!
-  toggleCommentsClosed(postId: ID!, closed: Boolean!): Post!
-  addComment(
-    postId: ID!,
-    parentId: ID,
-    body: String!,
-    author: String!
-  ): Comment!
+    createPost(title: String!, body: String!, author: String!): Post!
+    toggleCommentsClosed(postId: ID!, closed: Boolean!): Post!
+    addComment(
+        postId: ID!,
+        parentId: ID,
+        body: String!,
+        author: String!
+    ): Comment!
 }
 
- type Subscription {
-  commentAdded(postId: ID!): Comment!
+type Subscription {
+     commentAdded(postId: ID!): Comment!
 }

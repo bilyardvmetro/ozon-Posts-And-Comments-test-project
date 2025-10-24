@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/PostsAndCOmmentsMicroservice.iml" filepath="$PROJECT_DIR$/.idea/PostsAndCOmmentsMicroservice.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/PostsAndCommentsMicroservice.iml" filepath="$PROJECT_DIR$/.idea/PostsAndCommentsMicroservice.iml" />
     </modules>
   </component>
 </project>
