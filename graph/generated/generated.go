@@ -90,7 +90,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Comments func(childComplexity int, postID string, parentID string, after *string, first *int) int
+		Comments func(childComplexity int, postID string, parentID *string, after *string, first *int) int
 		Post     func(childComplexity int, id string) int
 		Posts    func(childComplexity int) int
 	}
@@ -108,7 +108,7 @@ type MutationResolver interface {
 type QueryResolver interface {
 	Posts(ctx context.Context) ([]*model.Post, error)
 	Post(ctx context.Context, id string) (*model.Post, error)
-	Comments(ctx context.Context, postID string, parentID string, after *string, first *int) (*model.CommentPage, error)
+	Comments(ctx context.Context, postID string, parentID *string, after *string, first *int) (*model.CommentPage, error)
 }
 type SubscriptionResolver interface {
 	CommentAdded(ctx context.Context, postID string) (<-chan *model.Comment, error)
@@ -302,7 +302,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.Comments(childComplexity, args["postId"].(string), args["parentId"].(string), args["after"].(*string), args["first"].(*int)), true
+		return e.complexity.Query.Comments(childComplexity, args["postId"].(string), args["parentId"].(*string), args["after"].(*string), args["first"].(*int)), true
 	case "Query.post":
 		if e.complexity.Query.Post == nil {
 			break
@@ -498,7 +498,7 @@ type Query {
     post(id: ID!): Post
     comments(
         postId: ID!
-        parentId: ID!
+        parentId: ID
         after: String
         first: Int = 20
     ): CommentPage!
@@ -608,7 +608,7 @@ func (ec *executionContext) field_Query_comments_args(ctx context.Context, rawAr
 		return nil, err
 	}
 	args["postId"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "parentId", ec.unmarshalNID2string)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "parentId", ec.unmarshalOID2ᚖstring)
 	if err != nil {
 		return nil, err
 	}
@@ -1589,7 +1589,7 @@ func (ec *executionContext) _Query_comments(ctx context.Context, field graphql.C
 		ec.fieldContext_Query_comments,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Query().Comments(ctx, fc.Args["postId"].(string), fc.Args["parentId"].(string), fc.Args["after"].(*string), fc.Args["first"].(*int))
+			return ec.resolvers.Query().Comments(ctx, fc.Args["postId"].(string), fc.Args["parentId"].(*string), fc.Args["after"].(*string), fc.Args["first"].(*int))
 		},
 		nil,
 		ec.marshalNCommentPage2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐCommentPage,

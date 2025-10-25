@@ -8,42 +8,122 @@ import (
 	"PostsAndCommentsMicroservice/graph/generated"
 	"PostsAndCommentsMicroservice/graph/model"
 	"context"
-	"fmt"
+	"errors"
+	"time"
+
+	"github.com/google/uuid"
 )
+
+func now() time.Time {
+	return time.Now().UTC()
+}
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, title string, body string, author string) (*model.Post, error) {
-	panic(fmt.Errorf("not implemented: CreatePost - createPost"))
+	newPost := &model.Post{
+		ID:             uuid.NewString(),
+		Title:          title,
+		Body:           body,
+		Author:         author,
+		CommentsClosed: false,
+		CreatedAt:      now(),
+	}
+	if err := r.Store.CreatePost(ctx, newPost); err != nil {
+		return nil, err
+	}
+	return newPost, nil
 }
 
 // ToggleCommentsClosed is the resolver for the toggleCommentsClosed field.
 func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID string, closed bool) (*model.Post, error) {
-	panic(fmt.Errorf("not implemented: ToggleCommentsClosed - toggleCommentsClosed"))
+	post, err := r.Store.CloseComments(ctx, postID, closed)
+	if err != nil {
+		return nil, err
+	}
+	return post, nil
 }
 
 // AddComment is the resolver for the addComment field.
 func (r *mutationResolver) AddComment(ctx context.Context, postID string, parentID *string, body string, author string) (*model.Comment, error) {
-	panic(fmt.Errorf("not implemented: AddComment - addComment"))
+	post, err := r.Store.GetPost(ctx, postID)
+	if err != nil {
+		return nil, err
+	}
+	if post == nil {
+		return nil, errors.New("post not found")
+	}
+	if post.CommentsClosed {
+		return nil, errors.New("comments are closed for this post")
+	}
+
+	comment := &model.Comment{
+		ID:        uuid.NewString(),
+		PostID:    postID,
+		ParentID:  parentID,
+		Author:    author,
+		Body:      body,
+		CreatedAt: now(),
+	}
+
+	if err := r.Store.CreateComment(ctx, comment); err != nil {
+		return nil, err
+	}
+
+	go r.Bus.Publish(postID, *comment)
+	return comment, nil
 }
 
 // Posts is the resolver for the posts field.
 func (r *queryResolver) Posts(ctx context.Context) ([]*model.Post, error) {
-	panic(fmt.Errorf("not implemented: Posts - posts"))
+	posts, err := r.Store.ListPosts(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return posts, nil
 }
 
 // Post is the resolver for the post field.
 func (r *queryResolver) Post(ctx context.Context, id string) (*model.Post, error) {
-	panic(fmt.Errorf("not implemented: Post - post"))
+	post, err := r.Store.GetPost(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return post, nil
 }
 
 // Comments is the resolver for the comments field.
-func (r *queryResolver) Comments(ctx context.Context, postID string, parentID string, after *string, first *int) (*model.CommentPage, error) {
-	panic(fmt.Errorf("not implemented: Comments - comments"))
+func (r *queryResolver) Comments(ctx context.Context, postID string, parentID *string, after *string, first *int) (*model.CommentPage, error) {
+	limit := 20
+	if first != nil && *first > 0 {
+		limit = *first
+	}
+
+	commentsPage, err := r.Store.ListComments(ctx, postID, parentID, after, limit)
+	if err != nil {
+		return nil, err
+	}
+	return commentsPage, nil
 }
 
 // CommentAdded is the resolver for the commentAdded field.
 func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) (<-chan *model.Comment, error) {
-	panic(fmt.Errorf("not implemented: CommentAdded - commentAdded"))
+	channel := make(chan *model.Comment, 1)
+
+	unsubscribe := r.Bus.Subscribe(
+		postID,
+		func(comment model.Comment) {
+			commentCopy := comment
+			channel <- &commentCopy
+		},
+	)
+
+	// отписать клиента, когда он отрубится
+	go func() {
+		<-ctx.Done()
+		unsubscribe()
+		close(channel)
+	}()
+	return channel, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -58,3 +138,15 @@ func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subsc
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
+
+// !!! WARNING !!!
+// The code below was going to be deleted when updating resolvers. It has been copied here so you have
+// one last chance to move it out of harms way if you want. There are two reasons this happens:
+//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
+//    it when you're done.
+//  - You have helper methods in this file. Move them out to keep these resolver files clean.
+/*
+	func now() time.Time {
+	return time.Now().UTC()
+}
+*/

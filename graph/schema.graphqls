@@ -42,7 +42,7 @@ type Query {
     post(id: ID!): Post
     comments(
         postId: ID!
-        parentId: ID!
+        parentId: ID
         after: String
         first: Int = 20
     ): CommentPage!
