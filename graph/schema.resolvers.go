@@ -45,6 +45,10 @@ func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID stri
 
 // AddComment is the resolver for the addComment field.
 func (r *mutationResolver) AddComment(ctx context.Context, postID string, parentID *string, body string, author string) (*model.Comment, error) {
+	if parentID != nil && *parentID == "" {
+		parentID = nil
+	}
+
 	post, err := r.Store.GetPost(ctx, postID)
 	if err != nil {
 		return nil, err

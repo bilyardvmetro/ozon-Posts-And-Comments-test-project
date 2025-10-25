@@ -91,9 +91,12 @@ func (m *memStore) CreateComment(ctx context.Context, comment *model.Comment) er
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	if comment.ParentID != nil && *comment.ParentID == "" {
+		comment.ParentID = nil
+	}
+
 	if comment.ParentID != nil {
-		parent := m.comments[*comment.ParentID]
-		if parent != nil {
+		if parent := m.comments[*comment.ParentID]; parent != nil {
 			comment.Depth = parent.Depth + 1
 		}
 	}
@@ -111,9 +114,14 @@ func (m *memStore) ListComments(ctx context.Context, postID string, parentID *st
 		if comment.PostID != postID {
 			continue
 		}
-		if (parentID == nil && comment.ParentID == nil) || // коренвые комментарии
-			(parentID != nil && comment.ParentID != nil && *parentID != *comment.ParentID) { // вложенные комментарии
+		// добавляем корневые комментарии
+		if parentID == nil {
 			items = append(items, comment)
+			// вложенные комментарии
+		} else {
+			if comment.ParentID != nil && *comment.ParentID == *parentID {
+				items = append(items, comment)
+			}
 		}
 	}
 
