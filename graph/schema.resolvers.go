@@ -14,10 +14,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func now() time.Time {
-	return time.Now().UTC()
-}
-
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, title string, body string, author string) (*model.Post, error) {
 	newPost := &model.Post{
@@ -26,7 +22,7 @@ func (r *mutationResolver) CreatePost(ctx context.Context, title string, body st
 		Body:           body,
 		Author:         author,
 		CommentsClosed: false,
-		CreatedAt:      now(),
+		CreatedAt:      time.Now().UTC(),
 	}
 	if err := r.Store.CreatePost(ctx, newPost); err != nil {
 		return nil, err
@@ -66,7 +62,7 @@ func (r *mutationResolver) AddComment(ctx context.Context, postID string, parent
 		ParentID:  parentID,
 		Author:    author,
 		Body:      body,
-		CreatedAt: now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
 	if err := r.Store.CreateComment(ctx, comment); err != nil {
@@ -142,15 +138,3 @@ func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subsc
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func now() time.Time {
-	return time.Now().UTC()
-}
-*/
