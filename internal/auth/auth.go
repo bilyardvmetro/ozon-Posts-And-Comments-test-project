@@ -15,7 +15,6 @@ type ctxKey struct{}
 var userKey ctxKey
 
 // WithUser извлекает имя из заголовка X-User и кладёт в контекст запроса.
-// В проде тут может быть JWT и полноценная валидация.
 func WithUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		u := r.Header.Get("X-User")
