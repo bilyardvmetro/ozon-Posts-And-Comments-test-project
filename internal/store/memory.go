@@ -9,38 +9,38 @@ import (
 	"time"
 )
 
-type memStore struct {
+type MemStore struct {
 	mu       sync.RWMutex
-	posts    map[string]*model.Post
-	comments map[string]*model.Comment
+	Posts    map[string]*model.Post
+	Comments map[string]*model.Comment
 }
 
 func NewMemStore() Store {
-	return &memStore{
-		posts:    map[string]*model.Post{},
-		comments: map[string]*model.Comment{},
+	return &MemStore{
+		Posts:    map[string]*model.Post{},
+		Comments: map[string]*model.Comment{},
 	}
 }
 
-func (m *memStore) CreatePost(ctx context.Context, post *model.Post) error {
+func (m *MemStore) CreatePost(ctx context.Context, post *model.Post) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	m.posts[post.ID] = post
+	m.Posts[post.ID] = post
 	return nil
 }
 
-func (m *memStore) GetPost(ctx context.Context, id string) (*model.Post, error) {
+func (m *MemStore) GetPost(ctx context.Context, id string) (*model.Post, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	post, ok := m.posts[id]
+	post, ok := m.Posts[id]
 	if !ok {
 		return nil, ErrNotFound
 	}
 
 	count := 0
-	for _, comment := range m.comments {
+	for _, comment := range m.Comments {
 		if comment.PostID == post.ID {
 			count++
 		}
@@ -50,12 +50,12 @@ func (m *memStore) GetPost(ctx context.Context, id string) (*model.Post, error) 
 	return post, nil
 }
 
-func (m *memStore) ListPosts(ctx context.Context) ([]*model.Post, error) {
+func (m *MemStore) ListPosts(ctx context.Context) ([]*model.Post, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	posts := make([]*model.Post, 0, len(m.posts))
-	for _, p := range m.posts {
+	posts := make([]*model.Post, 0, len(m.Posts))
+	for _, p := range m.Posts {
 		posts = append(posts, p)
 	}
 
@@ -63,7 +63,7 @@ func (m *memStore) ListPosts(ctx context.Context) ([]*model.Post, error) {
 
 	for _, p := range posts {
 		count := 0
-		for _, comment := range m.comments {
+		for _, comment := range m.Comments {
 			if comment.PostID == p.ID {
 				count++
 			}
@@ -74,11 +74,11 @@ func (m *memStore) ListPosts(ctx context.Context) ([]*model.Post, error) {
 	return posts, nil
 }
 
-func (m *memStore) CloseComments(ctx context.Context, id string, closed bool) (*model.Post, error) {
+func (m *MemStore) CloseComments(ctx context.Context, id string, closed bool) (*model.Post, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	post, ok := m.posts[id]
+	post, ok := m.Posts[id]
 	if !ok {
 		return nil, ErrNotFound
 	}
@@ -87,7 +87,7 @@ func (m *memStore) CloseComments(ctx context.Context, id string, closed bool) (*
 	return post, nil
 }
 
-func (m *memStore) CreateComment(ctx context.Context, comment *model.Comment) error {
+func (m *MemStore) CreateComment(ctx context.Context, comment *model.Comment) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -96,31 +96,31 @@ func (m *memStore) CreateComment(ctx context.Context, comment *model.Comment) er
 	}
 
 	if comment.ParentID != nil {
-		if parent := m.comments[*comment.ParentID]; parent != nil {
+		if parent := m.Comments[*comment.ParentID]; parent != nil {
 			comment.Depth = parent.Depth + 1
 		}
 	}
 
-	m.comments[comment.ID] = comment
+	m.Comments[comment.ID] = comment
 	return nil
 }
 
-func (m *memStore) GetComment(ctx context.Context, id string) (*model.Comment, error) {
+func (m *MemStore) GetComment(ctx context.Context, id string) (*model.Comment, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	c, ok := m.comments[id]
+	c, ok := m.Comments[id]
 	if !ok {
 		return nil, ErrNotFound
 	}
 	return c, nil
 }
 
-func (m *memStore) ListComments(ctx context.Context, postID string, parentID *string, after *string, limit int) (*model.CommentPage, error) {
+func (m *MemStore) ListComments(ctx context.Context, postID string, parentID *string, after *string, limit int) (*model.CommentPage, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
 	var items []*model.Comment
-	for _, comment := range m.comments {
+	for _, comment := range m.Comments {
 		if comment.PostID != postID {
 			continue
 		}
@@ -183,7 +183,7 @@ func encode(s string) string {
 	return base64.StdEncoding.EncodeToString([]byte(s))
 }
 
-func (m *memStore) BatchCommentsCount(ctx context.Context, postIDs []string) (map[string]int, error) {
+func (m *MemStore) BatchCommentsCount(ctx context.Context, postIDs []string) (map[string]int, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -192,7 +192,7 @@ func (m *memStore) BatchCommentsCount(ctx context.Context, postIDs []string) (ma
 		out[postID] = 0
 	}
 
-	for _, comment := range m.comments {
+	for _, comment := range m.Comments {
 		if _, ok := out[comment.PostID]; ok {
 			out[comment.PostID]++
 		}

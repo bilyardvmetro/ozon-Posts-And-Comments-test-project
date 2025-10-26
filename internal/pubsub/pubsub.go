@@ -5,11 +5,11 @@ import (
 	"sync"
 )
 
-type unsubscribe func()
+type Unsubscribe func()
 
 type Bus interface {
 	Publish(topic string, msg model.Comment)
-	Subscribe(topic string, h func(model.Comment)) unsubscribe
+	Subscribe(topic string, h func(model.Comment)) Unsubscribe
 }
 
 type handler struct {
@@ -37,7 +37,7 @@ func (m *memoryBus) Publish(postID string, msg model.Comment) {
 	}
 }
 
-func (m *memoryBus) Subscribe(postID string, h func(model.Comment)) unsubscribe {
+func (m *memoryBus) Subscribe(postID string, h func(model.Comment)) Unsubscribe {
 	m.mu.Lock()
 	m.seq++
 	id := m.seq
