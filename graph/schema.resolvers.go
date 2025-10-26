@@ -19,6 +19,9 @@ import (
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, title string, body string, author string) (*model.Post, error) {
+	if cu := currentUserName(ctx); cu != "" {
+		author = cu
+	}
 	if title == "" {
 		return nil, errors.New("title is required")
 	}
@@ -51,6 +54,11 @@ func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID stri
 		return nil, errors.New("post not found")
 	}
 
+	cu := currentUserName(ctx)
+	if cu == "" || cu != post.Author {
+		return nil, errors.New("forbidden: only post author can toggle comments")
+	}
+
 	return post, nil
 }
 
@@ -65,6 +73,10 @@ func (r *mutationResolver) AddComment(ctx context.Context, postID string, parent
 	}
 	if post.CommentsClosed {
 		return nil, errors.New("comments are closed for this post")
+	}
+
+	if cu := currentUserName(ctx); cu != "" {
+		author = cu
 	}
 
 	body = strings.TrimSpace(body)

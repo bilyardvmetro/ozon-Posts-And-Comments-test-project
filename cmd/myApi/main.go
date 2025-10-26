@@ -3,6 +3,7 @@ package main
 import (
 	"PostsAndCommentsMicroservice/graph"
 	"PostsAndCommentsMicroservice/graph/generated"
+	"PostsAndCommentsMicroservice/internal/auth"
 	"PostsAndCommentsMicroservice/internal/pubsub"
 	"PostsAndCommentsMicroservice/internal/store"
 	"context"
@@ -64,6 +65,8 @@ func main() {
 		msg := e.Error()
 
 		switch {
+		case strings.Contains(msg, "forbidden"):
+			code = "FORBIDDEN"
 		case strings.Contains(msg, "not found"):
 			code = "NOT_FOUND"
 		case strings.Contains(msg, "too long"), strings.Contains(msg, "required"), strings.Contains(msg, "invalid"):
@@ -77,11 +80,11 @@ func main() {
 	})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/query", cors(auth.WithUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		graph.WithLoaders(st, func(ctx context.Context) {
 			server.ServeHTTP(w, r.WithContext(ctx))
 		})(r.Context())
-	})))
+	}))))
 
 	log.Printf("listening on :8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
@@ -108,6 +111,7 @@ func corsMiddleware(origins string) func(http.Handler) http.Handler {
 				w.Header().Set("Access-Control-Allow-Credentials", "true")
 			}
 			if r.Method == http.MethodOptions {
+				w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-User")
 				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
 				w.WriteHeader(http.StatusNoContent)
 				return
