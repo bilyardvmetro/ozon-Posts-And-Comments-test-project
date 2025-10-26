@@ -192,3 +192,34 @@ func decodeCursor(cursor string) (time.Time, string, bool) {
 
 	return ts, parts[1], true
 }
+
+func (p *PostgresStore) BatchCommentsCount(ctx context.Context, postIDs []string) (map[string]int, error) {
+	if len(postIDs) == 0 {
+		return map[string]int{}, nil
+	}
+
+	const q = `select post_id, count(*) from comments where post_id = any($1) group by post_id`
+	rows, err := p.db.QueryContext(ctx, q, pgArray(postIDs))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	out := make(map[string]int, len(postIDs))
+	for _, id := range postIDs {
+		out[id] = 0
+	}
+
+	for rows.Next() {
+		var pid string
+		var cnt int
+		if err := rows.Scan(&pid, &cnt); err != nil {
+			return nil, err
+		}
+		out[pid] = cnt
+	}
+	return out, rows.Err()
+}
+
+// обертка для pgx
+func pgArray(ss []string) any { return ss }

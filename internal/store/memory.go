@@ -172,3 +172,20 @@ func cursorOf(comment *model.Comment) string {
 func encode(s string) string {
 	return base64.StdEncoding.EncodeToString([]byte(s))
 }
+
+func (m *memStore) BatchCommentsCount(ctx context.Context, postIDs []string) (map[string]int, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	out := make(map[string]int, len(postIDs))
+	for _, postID := range postIDs {
+		out[postID] = 0
+	}
+
+	for _, comment := range m.comments {
+		if _, ok := out[comment.PostID]; ok {
+			out[comment.PostID]++
+		}
+	}
+	return out, nil
+}

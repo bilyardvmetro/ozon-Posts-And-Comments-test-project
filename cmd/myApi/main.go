@@ -5,6 +5,7 @@ import (
 	"PostsAndCommentsMicroservice/graph/generated"
 	"PostsAndCommentsMicroservice/internal/pubsub"
 	"PostsAndCommentsMicroservice/internal/store"
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -54,7 +55,11 @@ func main() {
 	server.Use(extension.Introspection{})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", server)
+	http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		graph.WithLoaders(st, func(ctx context.Context) {
+			server.ServeHTTP(w, r.WithContext(ctx))
+		})(r.Context())
+	}))
 
 	log.Printf("listening on :8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))

@@ -132,6 +132,23 @@ func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) 
 	return channel, nil
 }
 
+func (r *Resolver) CommentsCount(ctx context.Context, post *model.Post) (int, error) {
+	if post.CommentsCount != 0 {
+		return post.CommentsCount, nil
+	}
+
+	loaders := GetLoaders(ctx)
+	if loaders == nil || loaders.CommentsCount == nil {
+		m, err := r.Store.BatchCommentsCount(ctx, []string{post.ID})
+		if err != nil {
+			return 0, err
+		}
+		return m[post.ID], nil
+	}
+
+	return loaders.CommentsCount.Load(ctx, post.ID)
+}
+
 // Mutation returns generated.MutationResolver implementation.
 func (r *Resolver) Mutation() generated.MutationResolver { return &mutationResolver{r} }
 
