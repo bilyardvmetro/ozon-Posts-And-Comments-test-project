@@ -9,7 +9,9 @@ import (
 	"PostsAndCommentsMicroservice/graph/model"
 	"context"
 	"errors"
+	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,6 +19,13 @@ import (
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, title string, body string, author string) (*model.Post, error) {
+	if title == "" {
+		return nil, errors.New("title is required")
+	}
+	if len(body) == 0 {
+		return nil, errors.New("body is required")
+	}
+
 	newPost := &model.Post{
 		ID:             uuid.NewString(),
 		Title:          title,
@@ -37,15 +46,16 @@ func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID stri
 	if err != nil {
 		return nil, err
 	}
+
+	if post == nil {
+		return nil, errors.New("post not found")
+	}
+
 	return post, nil
 }
 
 // AddComment is the resolver for the addComment field.
 func (r *mutationResolver) AddComment(ctx context.Context, postID string, parentID *string, body string, author string) (*model.Comment, error) {
-	if parentID != nil && *parentID == "" {
-		parentID = nil
-	}
-
 	post, err := r.Store.GetPost(ctx, postID)
 	if err != nil {
 		return nil, err
@@ -55,6 +65,28 @@ func (r *mutationResolver) AddComment(ctx context.Context, postID string, parent
 	}
 	if post.CommentsClosed {
 		return nil, errors.New("comments are closed for this post")
+	}
+
+	body = strings.TrimSpace(body)
+	if body == "" {
+		return nil, errors.New("comment body is required")
+	}
+	if len(body) > maxCommentLen {
+		return nil, fmt.Errorf("comment body is too long (max %d)", maxCommentLen)
+	}
+
+	if parentID != nil && *parentID == "" {
+		parentID = nil
+	}
+
+	if parentID != nil {
+		parent, err := r.Store.GetComment(ctx, *parentID)
+		if err != nil {
+			return nil, err
+		}
+		if parent == nil || parent.PostID != postID {
+			return nil, errors.New("invalid parentId")
+		}
 	}
 
 	comment := &model.Comment{

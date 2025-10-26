@@ -113,6 +113,21 @@ func (p *PostgresStore) CreateComment(ctx context.Context, comment *model.Commen
 	return err
 }
 
+func (p *PostgresStore) GetComment(ctx context.Context, id string) (*model.Comment, error) {
+	const q = `select id, post_id, parent_id, author, body, depth, created_at from comments where id = $1`
+
+	var c model.Comment
+	if err := p.db.QueryRowContext(ctx, q, id).Scan(
+		&c.ID, &c.PostID, &c.ParentID, &c.Author, &c.Body, &c.Depth, &c.CreatedAt,
+	); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &c, nil
+}
+
 func (p *PostgresStore) ListComments(ctx context.Context, postID string, parentID *string, after *string, limit int) (*model.CommentPage, error) {
 	args := []any{postID}
 	where := `c.post_id = $1`

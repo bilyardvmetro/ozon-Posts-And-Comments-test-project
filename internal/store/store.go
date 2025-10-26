@@ -17,6 +17,7 @@ type Store interface {
 
 	// Comments
 	CreateComment(ctx context.Context, comment *model.Comment) error
+	GetComment(ctx context.Context, id string) (*model.Comment, error)
 	ListComments(ctx context.Context, postID string, parentID *string, after *string, limit int) (*model.CommentPage, error)
 	BatchCommentsCount(ctx context.Context, postIDs []string) (map[string]int, error)
 }

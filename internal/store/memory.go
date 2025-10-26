@@ -105,6 +105,16 @@ func (m *memStore) CreateComment(ctx context.Context, comment *model.Comment) er
 	return nil
 }
 
+func (m *memStore) GetComment(ctx context.Context, id string) (*model.Comment, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	c, ok := m.comments[id]
+	if !ok {
+		return nil, ErrNotFound
+	}
+	return c, nil
+}
+
 func (m *memStore) ListComments(ctx context.Context, postID string, parentID *string, after *string, limit int) (*model.CommentPage, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
