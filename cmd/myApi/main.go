@@ -9,14 +9,17 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gorilla/websocket"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 func main() {
@@ -41,8 +44,8 @@ func main() {
 
 	bus := pubsub.NewMemoryBus()
 	resolvers := &graph.Resolver{Store: st, Bus: bus}
-
 	server := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
+
 	server.AddTransport(transport.POST{})
 	server.AddTransport(transport.GET{})
 	server.AddTransport(transport.Websocket{
@@ -54,13 +57,62 @@ func main() {
 	})
 	server.Use(extension.Introspection{})
 
+	cors := corsMiddleware(os.Getenv("CORS_ORIGINS"))
+
+	server.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
+		code := "INTERNAL"
+		msg := e.Error()
+
+		switch {
+		case strings.Contains(msg, "not found"):
+			code = "NOT_FOUND"
+		case strings.Contains(msg, "too long"), strings.Contains(msg, "required"), strings.Contains(msg, "invalid"):
+			code = "BAD_REQUEST"
+		}
+
+		ge := graphql.DefaultErrorPresenter(ctx, e)
+		ge.Message = msg
+		ge.Extensions = map[string]any{"code": code}
+		return ge
+	})
+
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/query", cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		graph.WithLoaders(st, func(ctx context.Context) {
 			server.ServeHTTP(w, r.WithContext(ctx))
 		})(r.Context())
-	}))
+	})))
 
 	log.Printf("listening on :8080...")
 	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func corsMiddleware(origins string) func(http.Handler) http.Handler {
+	allowed := map[string]struct{}{}
+	for _, o := range strings.Split(origins, ",") {
+		o = strings.TrimSpace(o)
+		if o != "" {
+			allowed[o] = struct{}{}
+		}
+	}
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			if origin != "" {
+				if len(allowed) == 0 {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+				} else if _, ok := allowed[origin]; ok {
+					w.Header().Set("Access-Control-Allow-Origin", origin)
+				}
+				w.Header().Set("Vary", "Origin")
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+			}
+			if r.Method == http.MethodOptions {
+				w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+				w.WriteHeader(http.StatusNoContent)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
