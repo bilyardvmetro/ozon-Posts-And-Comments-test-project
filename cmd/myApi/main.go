@@ -7,17 +7,47 @@ import (
 	"PostsAndCommentsMicroservice/internal/store"
 	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 func main() {
-	st := store.NewMemStore()
-	bus := pubsub.NewMemoryBus()
+	storeType := os.Getenv("STORE")
+	var st store.Store
+	var err error
 
+	switch storeType {
+	case "pg":
+		dsn := os.Getenv("POSTGRES_DSN")
+		if dsn == "" {
+			log.Fatalf("POSTGRES_DSN environment variable not set")
+		}
+
+		st, err = store.NewPostgres(dsn)
+		if err != nil {
+			log.Fatalf("Failed to connect to postgres: %v", err)
+		}
+	default:
+		st = store.NewMemStore()
+	}
+
+	bus := pubsub.NewMemoryBus()
 	resolvers := &graph.Resolver{Store: st, Bus: bus}
-	server := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
+
+	server := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
+	server.AddTransport(transport.POST{})
+	server.AddTransport(transport.GET{})
+	server.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 30 * time.Second,
+	})
+	server.Use(extension.Introspection{})
+	server.Use(extension.AutomaticPersistedQuery{})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", server)
