@@ -47,7 +47,6 @@ func main() {
 		KeepAlivePingInterval: 30 * time.Second,
 	})
 	server.Use(extension.Introspection{})
-	server.Use(extension.AutomaticPersistedQuery{})
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", server)
