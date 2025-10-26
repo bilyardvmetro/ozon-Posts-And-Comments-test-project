@@ -14,6 +14,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
+	"github.com/gorilla/websocket"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -45,6 +46,10 @@ func main() {
 	server.AddTransport(transport.GET{})
 	server.AddTransport(transport.Websocket{
 		KeepAlivePingInterval: 30 * time.Second,
+		Upgrader: websocket.Upgrader{
+			CheckOrigin:  func(r *http.Request) bool { return true },
+			Subprotocols: []string{"graphql-transport-ws", "graphql-ws"},
+		},
 	})
 	server.Use(extension.Introspection{})
 

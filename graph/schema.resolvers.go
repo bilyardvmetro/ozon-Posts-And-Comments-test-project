@@ -9,6 +9,7 @@ import (
 	"PostsAndCommentsMicroservice/graph/model"
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -69,6 +70,7 @@ func (r *mutationResolver) AddComment(ctx context.Context, postID string, parent
 		return nil, err
 	}
 
+	log.Printf("[MUT] addComment postID=%s commentID=%s", postID, comment.ID)
 	go r.Bus.Publish(postID, *comment)
 	return comment, nil
 }
@@ -107,11 +109,14 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, parentID *s
 
 // CommentAdded is the resolver for the commentAdded field.
 func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) (<-chan *model.Comment, error) {
+	log.Printf("[SUB] subscribe postID=%s", postID)
+
 	channel := make(chan *model.Comment, 1)
 
 	unsubscribe := r.Bus.Subscribe(
 		postID,
 		func(comment model.Comment) {
+			log.Printf("[SUB] push postID=%s commentID=%s", postID, comment.ID)
 			commentCopy := comment
 			channel <- &commentCopy
 		},
@@ -120,6 +125,7 @@ func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) 
 	// отписать клиента, когда он отрубится
 	go func() {
 		<-ctx.Done()
+		log.Printf("[SUB] unsubscribe postID=%s", postID)
 		unsubscribe()
 		close(channel)
 	}()

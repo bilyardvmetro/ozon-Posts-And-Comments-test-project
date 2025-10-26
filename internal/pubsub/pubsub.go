@@ -1,6 +1,9 @@
 package pubsub
 
-import "PostsAndCommentsMicroservice/graph/model"
+import (
+	"PostsAndCommentsMicroservice/graph/model"
+	"sync"
+)
 
 type unsubscribe func()
 
@@ -9,30 +12,48 @@ type Bus interface {
 	Subscribe(topic string, h func(model.Comment)) unsubscribe
 }
 
+type handler struct {
+	id int64
+	fn func(model.Comment)
+}
+
 type memoryBus struct {
-	m map[string][]func(model.Comment)
+	mu  sync.RWMutex
+	m   map[string][]handler
+	seq int64
 }
 
 func NewMemoryBus() Bus {
-	return &memoryBus{m: map[string][]func(model.Comment){}}
+	return &memoryBus{m: make(map[string][]handler)}
 }
 
 func (m *memoryBus) Publish(postID string, msg model.Comment) {
-	if handlers, ok := m.m[postID]; ok {
-		for _, handler := range handlers {
-			go handler(msg)
-		}
+	m.mu.RLock()
+	hs := append([]handler(nil), m.m[postID]...)
+	m.mu.RUnlock()
+
+	for _, handler := range hs {
+		go handler.fn(msg)
 	}
 }
 
-func (m *memoryBus) Subscribe(postID string, handler func(model.Comment)) unsubscribe {
-	m.m[postID] = append(m.m[postID], handler)
-	index := len(m.m[postID]) - 1
+func (m *memoryBus) Subscribe(postID string, h func(model.Comment)) unsubscribe {
+	m.mu.Lock()
+	m.seq++
+	id := m.seq
+	m.m[postID] = append(m.m[postID], handler{id: id, fn: h})
+	m.mu.Unlock()
 
 	return func() {
+		m.mu.Lock()
 		handlers := m.m[postID]
-		if index >= 0 && index < len(handlers) {
-			m.m[postID] = append(handlers[:index], handlers[index+1:]...)
+		for i := range handlers {
+			if handlers[i].id == id {
+				handlers[i] = handlers[len(handlers)-1]
+				m.m[postID] = handlers[:len(handlers)-1]
+				break
+			}
 		}
+		m.mu.Unlock()
 	}
 }
