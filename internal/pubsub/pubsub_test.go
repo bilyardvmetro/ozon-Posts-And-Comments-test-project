@@ -1,11 +1,9 @@
-package tests
+package pubsub
 
 import (
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/pubsub"
 
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
 
@@ -26,7 +24,7 @@ func mkComment() model.Comment {
 
 func TestMemoryBus_PublishSingle(t *testing.T) {
 	t.Parallel()
-	b := pubsub.NewMemoryBus()
+	b := NewMemoryBus()
 	postID := uuid.NewString()
 
 	got := make(chan model.Comment, 1)
@@ -50,7 +48,7 @@ func TestMemoryBus_PublishSingle(t *testing.T) {
 
 func TestMemoryBus_FanOutAndUnsubscribe(t *testing.T) {
 	t.Parallel()
-	b := pubsub.NewMemoryBus()
+	b := NewMemoryBus()
 	postID := uuid.NewString()
 
 	const subs = 5
@@ -95,7 +93,7 @@ func TestMemoryBus_FanOutAndUnsubscribe(t *testing.T) {
 
 func TestMemoryBus_ConcurrentPublish(t *testing.T) {
 	t.Parallel()
-	b := pubsub.NewMemoryBus()
+	b := NewMemoryBus()
 	postID := uuid.NewString()
 
 	const subs = 8
