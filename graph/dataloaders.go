@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"PostsAndCommentsMicroservice/internal/store"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/store"
 )
 
 type ctxKey int

@@ -3,7 +3,6 @@
 package generated
 
 import (
-	"PostsAndCommentsMicroservice/graph/model"
 	"bytes"
 	"context"
 	"errors"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -942,7 +942,7 @@ func (ec *executionContext) _CommentEdge_node(ctx context.Context, field graphql
 			return obj.Node, nil
 		},
 		nil,
-		ec.marshalNComment2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐComment,
+		ec.marshalNComment2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐComment,
 		true,
 		true,
 	)
@@ -987,7 +987,7 @@ func (ec *executionContext) _CommentPage_edges(ctx context.Context, field graphq
 			return obj.Edges, nil
 		},
 		nil,
-		ec.marshalNCommentEdge2ᚕᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐCommentEdgeᚄ,
+		ec.marshalNCommentEdge2ᚕᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐCommentEdgeᚄ,
 		true,
 		true,
 	)
@@ -1022,7 +1022,7 @@ func (ec *executionContext) _CommentPage_pageInfo(ctx context.Context, field gra
 			return obj.PageInfo, nil
 		},
 		nil,
-		ec.marshalNPageInfo2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPageInfo,
+		ec.marshalNPageInfo2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPageInfo,
 		true,
 		true,
 	)
@@ -1058,7 +1058,7 @@ func (ec *executionContext) _Mutation_createPost(ctx context.Context, field grap
 			return ec.resolvers.Mutation().CreatePost(ctx, fc.Args["title"].(string), fc.Args["body"].(string), fc.Args["author"].(string))
 		},
 		nil,
-		ec.marshalNPost2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPost,
+		ec.marshalNPost2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPost,
 		true,
 		true,
 	)
@@ -1115,7 +1115,7 @@ func (ec *executionContext) _Mutation_toggleCommentsClosed(ctx context.Context, 
 			return ec.resolvers.Mutation().ToggleCommentsClosed(ctx, fc.Args["postId"].(string), fc.Args["closed"].(bool))
 		},
 		nil,
-		ec.marshalNPost2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPost,
+		ec.marshalNPost2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPost,
 		true,
 		true,
 	)
@@ -1172,7 +1172,7 @@ func (ec *executionContext) _Mutation_addComment(ctx context.Context, field grap
 			return ec.resolvers.Mutation().AddComment(ctx, fc.Args["postId"].(string), fc.Args["parentId"].(*string), fc.Args["body"].(string), fc.Args["author"].(string))
 		},
 		nil,
-		ec.marshalNComment2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐComment,
+		ec.marshalNComment2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐComment,
 		true,
 		true,
 	)
@@ -1489,7 +1489,7 @@ func (ec *executionContext) _Query_posts(ctx context.Context, field graphql.Coll
 			return ec.resolvers.Query().Posts(ctx)
 		},
 		nil,
-		ec.marshalNPost2ᚕᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPostᚄ,
+		ec.marshalNPost2ᚕᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPostᚄ,
 		true,
 		true,
 	)
@@ -1535,7 +1535,7 @@ func (ec *executionContext) _Query_post(ctx context.Context, field graphql.Colle
 			return ec.resolvers.Query().Post(ctx, fc.Args["id"].(string))
 		},
 		nil,
-		ec.marshalOPost2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPost,
+		ec.marshalOPost2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPost,
 		true,
 		false,
 	)
@@ -1592,7 +1592,7 @@ func (ec *executionContext) _Query_comments(ctx context.Context, field graphql.C
 			return ec.resolvers.Query().Comments(ctx, fc.Args["postId"].(string), fc.Args["parentId"].(*string), fc.Args["after"].(*string), fc.Args["first"].(*int))
 		},
 		nil,
-		ec.marshalNCommentPage2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐCommentPage,
+		ec.marshalNCommentPage2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐCommentPage,
 		true,
 		true,
 	)
@@ -1747,7 +1747,7 @@ func (ec *executionContext) _Subscription_commentAdded(ctx context.Context, fiel
 			return ec.resolvers.Subscription().CommentAdded(ctx, fc.Args["postId"].(string))
 		},
 		nil,
-		ec.marshalNComment2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐComment,
+		ec.marshalNComment2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐComment,
 		true,
 		true,
 	)
@@ -4058,11 +4058,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNComment2PostsAndCommentsMicroserviceᚋgraphᚋmodelᚐComment(ctx context.Context, sel ast.SelectionSet, v model.Comment) graphql.Marshaler {
+func (ec *executionContext) marshalNComment2githubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐComment(ctx context.Context, sel ast.SelectionSet, v model.Comment) graphql.Marshaler {
 	return ec._Comment(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNComment2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐComment(ctx context.Context, sel ast.SelectionSet, v *model.Comment) graphql.Marshaler {
+func (ec *executionContext) marshalNComment2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐComment(ctx context.Context, sel ast.SelectionSet, v *model.Comment) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4072,7 +4072,7 @@ func (ec *executionContext) marshalNComment2ᚖPostsAndCommentsMicroserviceᚋgr
 	return ec._Comment(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCommentEdge2ᚕᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐCommentEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CommentEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNCommentEdge2ᚕᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐCommentEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CommentEdge) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4096,7 +4096,7 @@ func (ec *executionContext) marshalNCommentEdge2ᚕᚖPostsAndCommentsMicroservi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCommentEdge2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐCommentEdge(ctx, sel, v[i])
+			ret[i] = ec.marshalNCommentEdge2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐCommentEdge(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4116,7 +4116,7 @@ func (ec *executionContext) marshalNCommentEdge2ᚕᚖPostsAndCommentsMicroservi
 	return ret
 }
 
-func (ec *executionContext) marshalNCommentEdge2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐCommentEdge(ctx context.Context, sel ast.SelectionSet, v *model.CommentEdge) graphql.Marshaler {
+func (ec *executionContext) marshalNCommentEdge2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐCommentEdge(ctx context.Context, sel ast.SelectionSet, v *model.CommentEdge) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4126,11 +4126,11 @@ func (ec *executionContext) marshalNCommentEdge2ᚖPostsAndCommentsMicroservice�
 	return ec._CommentEdge(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCommentPage2PostsAndCommentsMicroserviceᚋgraphᚋmodelᚐCommentPage(ctx context.Context, sel ast.SelectionSet, v model.CommentPage) graphql.Marshaler {
+func (ec *executionContext) marshalNCommentPage2githubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐCommentPage(ctx context.Context, sel ast.SelectionSet, v model.CommentPage) graphql.Marshaler {
 	return ec._CommentPage(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCommentPage2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐCommentPage(ctx context.Context, sel ast.SelectionSet, v *model.CommentPage) graphql.Marshaler {
+func (ec *executionContext) marshalNCommentPage2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐCommentPage(ctx context.Context, sel ast.SelectionSet, v *model.CommentPage) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4172,7 +4172,7 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNPageInfo2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
+func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *model.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4182,11 +4182,11 @@ func (ec *executionContext) marshalNPageInfo2ᚖPostsAndCommentsMicroserviceᚋg
 	return ec._PageInfo(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNPost2PostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPost(ctx context.Context, sel ast.SelectionSet, v model.Post) graphql.Marshaler {
+func (ec *executionContext) marshalNPost2githubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPost(ctx context.Context, sel ast.SelectionSet, v model.Post) graphql.Marshaler {
 	return ec._Post(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNPost2ᚕᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPostᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Post) graphql.Marshaler {
+func (ec *executionContext) marshalNPost2ᚕᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPostᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Post) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4210,7 +4210,7 @@ func (ec *executionContext) marshalNPost2ᚕᚖPostsAndCommentsMicroserviceᚋgr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNPost2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPost(ctx, sel, v[i])
+			ret[i] = ec.marshalNPost2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPost(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4230,7 +4230,7 @@ func (ec *executionContext) marshalNPost2ᚕᚖPostsAndCommentsMicroserviceᚋgr
 	return ret
 }
 
-func (ec *executionContext) marshalNPost2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPost(ctx context.Context, sel ast.SelectionSet, v *model.Post) graphql.Marshaler {
+func (ec *executionContext) marshalNPost2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPost(ctx context.Context, sel ast.SelectionSet, v *model.Post) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4591,7 +4591,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOPost2ᚖPostsAndCommentsMicroserviceᚋgraphᚋmodelᚐPost(ctx context.Context, sel ast.SelectionSet, v *model.Post) graphql.Marshaler {
+func (ec *executionContext) marshalOPost2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPost(ctx context.Context, sel ast.SelectionSet, v *model.Post) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

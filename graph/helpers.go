@@ -1,8 +1,9 @@
 package graph
 
 import (
-	"PostsAndCommentsMicroservice/internal/auth"
 	"context"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/auth"
 )
 
 const maxCommentLen = 2000

@@ -1,17 +1,18 @@
 package main
 
 import (
-	"PostsAndCommentsMicroservice/graph"
-	"PostsAndCommentsMicroservice/graph/generated"
-	"PostsAndCommentsMicroservice/internal/auth"
-	"PostsAndCommentsMicroservice/internal/pubsub"
-	"PostsAndCommentsMicroservice/internal/store"
 	"context"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/generated"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/auth"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/pubsub"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/store"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"

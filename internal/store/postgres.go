@@ -1,7 +1,6 @@
 package store
 
 import (
-	"PostsAndCommentsMicroservice/graph/model"
 	"context"
 	"database/sql"
 	"encoding/base64"
@@ -10,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
 )
 
 type PostgresStore struct {

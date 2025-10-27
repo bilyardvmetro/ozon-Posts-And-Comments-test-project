@@ -1,4 +1,4 @@
-module PostsAndCommentsMicroservice
+module github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project
 
 go 1.24.0
 

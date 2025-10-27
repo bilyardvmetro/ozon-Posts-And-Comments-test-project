@@ -1,12 +1,13 @@
 package tests
 
 import (
-	"PostsAndCommentsMicroservice/internal/pubsub"
 	"sync"
 	"testing"
 	"time"
 
-	"PostsAndCommentsMicroservice/graph/model" // <- поменяй на свой module path
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/pubsub"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
 
 	"github.com/google/uuid"
 )

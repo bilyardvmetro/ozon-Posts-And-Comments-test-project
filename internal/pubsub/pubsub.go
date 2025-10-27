@@ -1,8 +1,9 @@
 package pubsub
 
 import (
-	"PostsAndCommentsMicroservice/graph/model"
 	"sync"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
 )
 
 type Unsubscribe func()

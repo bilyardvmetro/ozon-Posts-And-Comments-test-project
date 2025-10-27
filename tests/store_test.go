@@ -1,13 +1,14 @@
 package tests_test
 
 import (
-	"PostsAndCommentsMicroservice/graph/model"
-	"PostsAndCommentsMicroservice/internal/store"
 	"context"
 	"encoding/base64"
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/store"
 )
 
 func TestMemoryStore_CreateAndCountComments(t *testing.T) {

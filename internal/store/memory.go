@@ -1,12 +1,13 @@
 package store
 
 import (
-	"PostsAndCommentsMicroservice/graph/model"
 	"context"
 	"encoding/base64"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
 )
 
 type MemStore struct {

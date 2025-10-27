@@ -1,8 +1,8 @@
 package graph
 
 import (
-	"PostsAndCommentsMicroservice/internal/pubsub"
-	"PostsAndCommentsMicroservice/internal/store"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/pubsub"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/store"
 )
 
 type Resolver struct {

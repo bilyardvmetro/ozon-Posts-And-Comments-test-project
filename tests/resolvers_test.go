@@ -1,12 +1,13 @@
 package tests_test
 
 import (
-	"PostsAndCommentsMicroservice/graph"
-	"PostsAndCommentsMicroservice/internal/pubsub"
-	"PostsAndCommentsMicroservice/internal/store"
 	"context"
 	"strings"
 	"testing"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/pubsub"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/store"
 )
 
 func newResolverForTests() *graph.Resolver {

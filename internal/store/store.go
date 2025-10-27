@@ -1,9 +1,10 @@
 package store
 
 import (
-	"PostsAndCommentsMicroservice/graph/model"
 	"context"
 	"errors"
+
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
 )
 
 var ErrNotFound = errors.New("not found")
