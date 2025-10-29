@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
-	"log"
+	"errors"
+	"io"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph"
@@ -29,6 +32,9 @@ func main() {
 	logger.Init()
 	logger.Log.Info().Msg("Logger initialized")
 
+	rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	storeType := os.Getenv("STORE")
 	var st store.Store
 	var err error
@@ -37,12 +43,12 @@ func main() {
 	case "pg":
 		dsn := os.Getenv("POSTGRES_DSN")
 		if dsn == "" {
-			log.Fatalf("POSTGRES_DSN environment variable not set")
+			logger.Log.Fatal().Msg("POSTGRES_DSN environment variable not set")
 		}
 
 		st, err = store.NewPostgres(dsn)
 		if err != nil {
-			log.Fatalf("Failed to connect to postgres: %v", err)
+			logger.Log.Fatal().Err(err).Msg("Failed to connect to postgres")
 		}
 	default:
 		st = store.NewMemStore()
@@ -62,10 +68,8 @@ func main() {
 		},
 	})
 	server.Use(extension.Introspection{})
+
 	logger.AttachGraphQLHooks(server)
-
-	cors := corsMiddleware(os.Getenv("CORS_ORIGINS"))
-
 	server.SetErrorPresenter(func(ctx context.Context, e error) *gqlerror.Error {
 		code := "INTERNAL"
 		msg := e.Error()
@@ -85,15 +89,58 @@ func main() {
 		return ge
 	})
 
-	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	http.Handle("/query", cors(auth.WithUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	cors := corsMiddleware(os.Getenv("CORS_ORIGINS"))
+	mux := http.NewServeMux()
+	mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	mux.Handle("/query", cors(auth.WithUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		graph.WithLoaders(st, func(ctx context.Context) {
 			server.ServeHTTP(w, r.WithContext(ctx))
 		})(r.Context())
 	}))))
 
-	logger.Log.Info().Msg("Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	addr := ":8080"
+	httpSrv := &http.Server{
+		Addr:              addr,
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       15 * time.Second,
+		WriteTimeout:      15 * time.Second,
+		IdleTimeout:       60 * time.Second,
+	}
+
+	go func() {
+		logger.Log.Info().Str("addr", addr).Msg("starting server")
+		if err := httpSrv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Log.Fatal().Err(err).Msg("http server stopped")
+		}
+	}()
+
+	<-rootCtx.Done()
+	logger.Log.Info().Msg("shutdown signal received")
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+
+	if err := httpSrv.Shutdown(shutdownCtx); err != nil {
+		logger.Log.Error().Err(err).Msg("http server shutdown error")
+	} else {
+		logger.Log.Info().Msg("http server shutdown successfully")
+	}
+
+	closeIfNeeded(bus, "subscription bus")
+	closeIfNeeded(st, "store")
+
+	logger.Log.Info().Msg("graceful shutdown complete")
+}
+
+func closeIfNeeded(x any, name string) {
+	if c, ok := x.(io.Closer); ok && c != nil {
+		if err := c.Close(); err != nil {
+			logger.Log.Error().Str("component", name).Msg("close error")
+			return
+		}
+		logger.Log.Info().Str("component", name).Msg("closed")
+	}
 }
 
 func corsMiddleware(origins string) func(http.Handler) http.Handler {

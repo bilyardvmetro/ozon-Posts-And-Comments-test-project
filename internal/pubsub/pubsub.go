@@ -19,17 +19,32 @@ type handler struct {
 }
 
 type memoryBus struct {
-	mu  sync.RWMutex
-	m   map[string][]handler
-	seq int64
+	mu     sync.RWMutex
+	m      map[string][]handler
+	seq    int64
+	closed bool
 }
 
 func NewMemoryBus() Bus {
 	return &memoryBus{m: make(map[string][]handler)}
 }
 
+func (m *memoryBus) Close() error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	m.closed = true
+	m.m = nil
+	return nil
+}
+
 func (m *memoryBus) Publish(postID string, msg model.Comment) {
 	m.mu.RLock()
+	if m.closed || m.m == nil {
+		m.mu.RUnlock()
+		return
+	}
+
 	hs := append([]handler(nil), m.m[postID]...)
 	m.mu.RUnlock()
 
@@ -40,6 +55,11 @@ func (m *memoryBus) Publish(postID string, msg model.Comment) {
 
 func (m *memoryBus) Subscribe(postID string, h func(model.Comment)) Unsubscribe {
 	m.mu.Lock()
+	if m.closed || m.m == nil {
+		m.mu.RUnlock()
+		return func() {}
+	}
+
 	m.seq++
 	id := m.seq
 	m.m[postID] = append(m.m[postID], handler{id: id, fn: h})
@@ -47,14 +67,24 @@ func (m *memoryBus) Subscribe(postID string, h func(model.Comment)) Unsubscribe 
 
 	return func() {
 		m.mu.Lock()
+		defer m.mu.Unlock()
+
+		if m.closed || m.m == nil {
+			m.mu.RUnlock()
+			return
+		}
+
 		handlers := m.m[postID]
 		for i := range handlers {
 			if handlers[i].id == id {
 				handlers[i] = handlers[len(handlers)-1]
 				m.m[postID] = handlers[:len(handlers)-1]
+
+				if len(m.m[postID]) == 0 {
+					delete(m.m, postID)
+				}
 				break
 			}
 		}
-		m.mu.Unlock()
 	}
 }

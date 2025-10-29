@@ -26,7 +26,23 @@ func NewPostgres(dsn string) (Store, error) {
 	db.SetMaxOpenConns(20)
 	db.SetMaxIdleConns(10)
 	db.SetConnMaxLifetime(30 * time.Minute)
+
+	// Быстрая проверка соединения, чтобы упасть сразу, а не на первом запросе
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := db.PingContext(ctx); err != nil {
+		_ = db.Close()
+		return nil, err
+	}
+
 	return &PostgresStore{db: db}, nil
+}
+
+func (p *PostgresStore) Close() error {
+	if p == nil || p.db == nil {
+		return nil
+	}
+	return p.db.Close()
 }
 
 func (p *PostgresStore) CreatePost(ctx context.Context, post *model.Post) error {
