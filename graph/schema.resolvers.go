@@ -8,12 +8,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/generated"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/logctx"
 	"github.com/google/uuid"
 )
 
@@ -114,7 +114,6 @@ func (r *mutationResolver) AddComment(ctx context.Context, postID string, parent
 		return nil, err
 	}
 
-	log.Printf("[MUT] addComment postID=%s commentID=%s", postID, comment.ID)
 	go r.Bus.Publish(postID, *comment)
 	return comment, nil
 }
@@ -153,14 +152,21 @@ func (r *queryResolver) Comments(ctx context.Context, postID string, parentID *s
 
 // CommentAdded is the resolver for the commentAdded field.
 func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) (<-chan *model.Comment, error) {
-	log.Printf("[SUB] subscribe postID=%s", postID)
+	log := logctx.From(ctx, r.Logger).With().
+		Str("op", "subscriptionForComment").
+		Str("postID", postID).
+		Logger()
+
+	log.Info().Str("postId", postID).Msg("subscription for post")
 
 	channel := make(chan *model.Comment, 1)
 
 	unsubscribe := r.Bus.Subscribe(
 		postID,
 		func(comment model.Comment) {
-			log.Printf("[SUB] push postID=%s commentID=%s", postID, comment.ID)
+			log.Debug().
+				Str("comment_id", comment.ID).
+				Msg("push")
 			commentCopy := comment
 			channel <- &commentCopy
 		},
@@ -169,7 +175,7 @@ func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID string) 
 	// отписать клиента, когда он отрубится
 	go func() {
 		<-ctx.Done()
-		log.Printf("[SUB] unsubscribe postID=%s", postID)
+		log.Info().Str("potsId", postID).Msg("unsubscribe from post")
 		unsubscribe()
 		close(channel)
 	}()

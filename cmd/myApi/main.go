@@ -11,6 +11,7 @@ import (
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/generated"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/auth"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/logger"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/pubsub"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/store"
 
@@ -25,6 +26,9 @@ import (
 )
 
 func main() {
+	logger.Init()
+	logger.Log.Info().Msg("Logger initialized")
+
 	storeType := os.Getenv("STORE")
 	var st store.Store
 	var err error
@@ -45,7 +49,7 @@ func main() {
 	}
 
 	bus := pubsub.NewMemoryBus()
-	resolvers := &graph.Resolver{Store: st, Bus: bus}
+	resolvers := &graph.Resolver{Store: st, Bus: bus, Logger: logger.Log}
 	server := handler.New(generated.NewExecutableSchema(generated.Config{Resolvers: resolvers}))
 
 	server.AddTransport(transport.POST{})
@@ -58,6 +62,7 @@ func main() {
 		},
 	})
 	server.Use(extension.Introspection{})
+	logger.AttachGraphQLHooks(server)
 
 	cors := corsMiddleware(os.Getenv("CORS_ORIGINS"))
 
@@ -87,7 +92,7 @@ func main() {
 		})(r.Context())
 	}))))
 
-	log.Printf("listening on :8080...")
+	logger.Log.Info().Msg("Server running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
 
