@@ -25,11 +25,11 @@
 | Поле             | Тип        | Описание                                   |
 |------------------|------------|--------------------------------------------|
 | `id`             | `ID!`      | Уникальный идентификатор поста             |
-| `title`          | `String!`  | Текст поста                                |
+| `title`          | `String!`  | Название поста                             |
 | `body`           | `String!`  | Текст поста                                |
 | `author`         | `String!`  | Имя автора (берётся из заголовка `X-User`) |
 | `commentsClosed` | `Boolean!` | Флаг, запрещающий добавление комментариев  |
-| `createdAt`      | `Time!`    | Время создания                             |
+| `createdAt`      | `Time!`    | Время создания поста                       |
 
 ---
 
@@ -59,81 +59,121 @@
 query {
     posts {
         id
-        author
+        title
         body
-        createdAt
+        author
         commentsClosed
+        createdAt
+        commentsCount
     }
 }
 ```
 
 #### `post(id: ID!): Post`
 
-Возвращает один пост и все его комментарии.
+Возвращает пост по его `postId`.
 
 ```graphql
 query {
-    post(id: "123e4567-e89b-12d3-a456-426614174000") {
+    post(id: <post Id>) {
         id
-        author
+        title
         body
+        author
         commentsClosed
-        comments {
-            id
-            author
-            body
-            createdAt
+        createdAt
+        commentsCount
+    }
+}
+```
+
+#### `comments(postId: ID!, parentId: ID, after: String, first: Int = 20): CommentPage!`
+
+Возвращает все комментарии поста или комментарии поста вложенные в `parentId`: ID
+
+
+```graphql
+query {
+    comments (postId: <post Id>, parentId: <comment Id>, after: <cursor string>, first: <comments count>) {
+        pageInfo{
+            endCursor
+            hasNextPage
+        }
+        edges{
+            cursor
+            node{
+                id
+                postID
+                parentID
+                author
+                body
+                depth
+                createdAt
+            }
         }
     }
 }
 ```
 
-`comments(
-        postId: ID!
-        parentId: ID
-        after: String
-        first: Int = 20
-    ): CommentPage!`
-
-Возвращает все комментарии поста или комментарии поста вложенные в parentId: ID
-
 ### **Mutation**
 
-`createPost(title: String!, body: String!, author: String!): Post!`
+#### `createPost(title: String!, body: String!, author: String!): Post!`
 
-Создаёт новый пост от имени пользователя из заголовка X-User.
+Создаёт новый пост от имени пользователя из заголовка `author`.
 
 ````graphql 
 mutation {
-    createPost(body: "Hello, GraphQL!") {
+    createPost(title: <post title>, body: <post text>, author: <author>) {
         id
-        author
+        title
         body
+        author
+        commentsClosed
+        createdAt
+        commentsCount
     }
 }
 ````
 
-`    addComment(
-        postId: ID!,
-        parentId: ID,
-        body: String!,
-        author: String!
-    ): Comment!`
+#### `addComment(postId: ID!, parentId: ID, body: String!, author: String!): Comment!`
 
-Добавляет комментарий к существующему посту.
+Добавляет комментарий к существующему посту, если `parentId` пуст или не отправлен.
+
+Добавляет вложеннный комментарий к комментарию с ID `parentId`, если он указан.
+
 Если commentsClosed == true, сервер возвращает ошибку `comments are closed for this post`.
 
 ````graphql
+# Add root comment
 mutation {
-    addComment(postId: "123e4567-e89b-12d3-a456-426614174000", parentId: <Optional>, body: "Nice post!", author: "bob") {
+    addComment(postId: <post Id>, body: <comment text>, author: <comment author>) {
         id
+        postID
+        parentID
         author
         body
+        depth
+        createdAt
     }
 }
 ````
 
-`toggleCommentsClosed(postId: ID!, closed: Boolean!): Post!`
+````graphql
+# Add nested comment
+mutation {
+    addComment(postId: <post Id>, parentId: <parent comment Id>, body: <comment text>, author: <comment author>) {
+        id
+        postID
+        parentID
+        author
+        body
+        depth
+        createdAt
+    }
+}
+````
+
+#### `toggleCommentsClosed(postId: ID!, closed: Boolean!): Post!`
 
 Позволяет только автору поста запретить или разрешить комментарии.
 Если пользователь не является автором поста — возвращается ошибка:
@@ -142,10 +182,14 @@ mutation {
 
 ````graphql
 mutation {
-    toggleCommentsClosed(postId: "123e4567-e89b-12d3-a456-426614174000", closed: true) {
+    toggleCommentsClosed(postId: <post Id>, closed: <true | false>) {
         id
+        postID
+        parentID
         author
-        commentsClosed
+        body
+        depth
+        createdAt
     }
 }
 ````
@@ -158,10 +202,14 @@ mutation {
 
 ````graphql
 subscription {
-    commentAdded(postId: "123e4567-e89b-12d3-a456-426614174000") {
+    commentAdded(postId: <post Id>) {
         id
+        postID
+        parentID
         author
         body
+        depth
+        createdAt
     }
 }
 ````
@@ -196,15 +244,13 @@ X-User: alice
 go run ./cmd/myApi
 ```
 
-В консоли появится вывод: `listening on :8080...`
-
 ### С помощью Docker compose
 
 ```bash
 docker-compose up --build -d
 ```
 
-В логе сервера появится вывод: `listening on :8080...`
+В логе сервера появится вывод: `INF app/cmd/myApi/main.go:112 > starting server addr=:8080`
 
 В логе БД: `database system is ready to accept connections`
 
@@ -213,5 +259,5 @@ docker-compose up --build -d
 
 Перед запуском можно выбрать хранилище: БД или in-memory
 
-- В файле [.env](.env) установите проперти `STORE=pg`, для выбора БД хранилища.
-- Для in-memory хранилища оставить проперти пустой
+- В файле [.env](.env) установите property `STORE=pg`, для выбора БД хранилища.
+- Для in-memory хранилища оставить property пустой
