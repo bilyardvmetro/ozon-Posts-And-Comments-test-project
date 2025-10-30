@@ -71,7 +71,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddComment           func(childComplexity int, postID string, parentID *string, body string, author string) int
 		CreatePost           func(childComplexity int, title string, body string, author string) int
-		ToggleCommentsClosed func(childComplexity int, postID string, closed bool) int
+		ToggleCommentsClosed func(childComplexity int, postID string, closed bool, user string) int
 	}
 
 	PageInfo struct {
@@ -102,7 +102,7 @@ type ComplexityRoot struct {
 
 type MutationResolver interface {
 	CreatePost(ctx context.Context, title string, body string, author string) (*model.Post, error)
-	ToggleCommentsClosed(ctx context.Context, postID string, closed bool) (*model.Post, error)
+	ToggleCommentsClosed(ctx context.Context, postID string, closed bool, user string) (*model.Post, error)
 	AddComment(ctx context.Context, postID string, parentID *string, body string, author string) (*model.Comment, error)
 }
 type QueryResolver interface {
@@ -234,7 +234,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ToggleCommentsClosed(childComplexity, args["postId"].(string), args["closed"].(bool)), true
+		return e.complexity.Mutation.ToggleCommentsClosed(childComplexity, args["postId"].(string), args["closed"].(bool), args["user"].(string)), true
 
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
@@ -506,7 +506,7 @@ type Query {
 
 type Mutation {
     createPost(title: String!, body: String!, author: String!): Post!
-    toggleCommentsClosed(postId: ID!, closed: Boolean!): Post!
+    toggleCommentsClosed(postId: ID!, closed: Boolean!, user: String!): Post!
     addComment(
         postId: ID!,
         parentId: ID,
@@ -586,6 +586,11 @@ func (ec *executionContext) field_Mutation_toggleCommentsClosed_args(ctx context
 		return nil, err
 	}
 	args["closed"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "user", ec.unmarshalNString2string)
+	if err != nil {
+		return nil, err
+	}
+	args["user"] = arg2
 	return args, nil
 }
 
@@ -1112,7 +1117,7 @@ func (ec *executionContext) _Mutation_toggleCommentsClosed(ctx context.Context, 
 		ec.fieldContext_Mutation_toggleCommentsClosed,
 		func(ctx context.Context) (any, error) {
 			fc := graphql.GetFieldContext(ctx)
-			return ec.resolvers.Mutation().ToggleCommentsClosed(ctx, fc.Args["postId"].(string), fc.Args["closed"].(bool))
+			return ec.resolvers.Mutation().ToggleCommentsClosed(ctx, fc.Args["postId"].(string), fc.Args["closed"].(bool), fc.Args["user"].(string))
 		},
 		nil,
 		ec.marshalNPost2ᚖgithubᚗcomᚋbilyardvmetroᚋozonᚑPostsᚑAndᚑCommentsᚑtestᚑprojectᚋgraphᚋmodelᚐPost,

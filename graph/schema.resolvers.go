@@ -19,8 +19,8 @@ import (
 
 // CreatePost is the resolver for the createPost field.
 func (r *mutationResolver) CreatePost(ctx context.Context, title string, body string, author string) (*model.Post, error) {
-	if cu := currentUserName(ctx); cu != "" {
-		author = cu
+	if author == "" {
+		return nil, errors.New("author is required")
 	}
 	if title == "" {
 		return nil, errors.New("title is required")
@@ -44,23 +44,7 @@ func (r *mutationResolver) CreatePost(ctx context.Context, title string, body st
 }
 
 // ToggleCommentsClosed is the resolver for the toggleCommentsClosed field.
-func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID string, closed bool) (*model.Post, error) {
-	//post, err := r.Store.CloseComments(ctx, postID, closed)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//if post == nil {
-	//	return nil, errors.New("post not found")
-	//}
-	//
-	//cu := currentUserName(ctx)
-	//if cu == "" || cu != post.Author {
-	//	return nil, errors.New("forbidden: only post author can toggle comments")
-	//}
-	//
-	//return post, nil
-
+func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID string, closed bool, user string) (*model.Post, error) {
 	post, err := r.Store.GetPost(ctx, postID)
 
 	if err != nil {
@@ -70,8 +54,7 @@ func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID stri
 		return nil, errors.New("post not found")
 	}
 
-	cu := currentUserName(ctx)
-	if cu == "" || cu != post.Author {
+	if user == "" || user != post.Author {
 		return nil, errors.New("forbidden: only post author can toggle comments")
 	}
 
@@ -85,19 +68,20 @@ func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID stri
 
 // AddComment is the resolver for the addComment field.
 func (r *mutationResolver) AddComment(ctx context.Context, postID string, parentID *string, body string, author string) (*model.Comment, error) {
+	if author == "" {
+		return nil, errors.New("auth is required")
+	}
+
 	post, err := r.Store.GetPost(ctx, postID)
 	if err != nil {
 		return nil, err
 	}
+
 	if post == nil {
 		return nil, errors.New("post not found")
 	}
 	if post.CommentsClosed {
 		return nil, errors.New("comments are closed for this post")
-	}
-
-	if cu := currentUserName(ctx); cu != "" {
-		author = cu
 	}
 
 	body = strings.TrimSpace(body)
@@ -215,28 +199,3 @@ func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subsc
 type mutationResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type subscriptionResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *Resolver) CommentsCount(ctx context.Context, post *model.Post) (int, error) {
-	if post.CommentsCount != 0 {
-		return post.CommentsCount, nil
-	}
-
-	loaders := GetLoaders(ctx)
-	if loaders == nil || loaders.CommentsCount == nil {
-		m, err := r.Store.BatchCommentsCount(ctx, []string{post.ID})
-		if err != nil {
-			return 0, err
-		}
-		return m[post.ID], nil
-	}
-
-	return loaders.CommentsCount.Load(ctx, post.ID)
-}
-*/

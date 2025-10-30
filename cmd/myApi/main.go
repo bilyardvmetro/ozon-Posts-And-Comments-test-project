@@ -13,7 +13,6 @@ import (
 
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/generated"
-	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/auth"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/logger"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/pubsub"
 	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/store"
@@ -92,11 +91,11 @@ func main() {
 	cors := corsMiddleware(os.Getenv("CORS_ORIGINS"))
 	mux := http.NewServeMux()
 	mux.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	mux.Handle("/query", cors(auth.WithUser(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	mux.Handle("/query", cors(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		graph.WithLoaders(st, func(ctx context.Context) {
 			server.ServeHTTP(w, r.WithContext(ctx))
 		})(r.Context())
-	}))))
+	})))
 
 	addr := ":8080"
 	httpSrv := &http.Server{

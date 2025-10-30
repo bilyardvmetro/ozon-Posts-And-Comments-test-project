@@ -3,14 +3,31 @@ package graph
 import (
 	"context"
 
-	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/internal/auth"
+	"github.com/bilyardvmetro/ozon-Posts-And-Comments-test-project/graph/model"
 )
 
 const maxCommentLen = 2000
 
-func currentUserName(ctx context.Context) string {
-	if u := auth.FromContext(ctx); u != nil {
-		return u.Name
+//func currentUserName(ctx context.Context) string {
+//	if u := auth.FromContext(ctx); u != nil {
+//		return u.Name
+//	}
+//	return "" // гость
+//}
+
+func (r *Resolver) CommentsCount(ctx context.Context, post *model.Post) (int, error) {
+	if post.CommentsCount != 0 {
+		return post.CommentsCount, nil
 	}
-	return "" // гость
+
+	loaders := GetLoaders(ctx)
+	if loaders == nil || loaders.CommentsCount == nil {
+		m, err := r.Store.BatchCommentsCount(ctx, []string{post.ID})
+		if err != nil {
+			return 0, err
+		}
+		return m[post.ID], nil
+	}
+
+	return loaders.CommentsCount.Load(ctx, post.ID)
 }
