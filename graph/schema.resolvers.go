@@ -45,11 +45,27 @@ func (r *mutationResolver) CreatePost(ctx context.Context, title string, body st
 
 // ToggleCommentsClosed is the resolver for the toggleCommentsClosed field.
 func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID string, closed bool) (*model.Post, error) {
-	post, err := r.Store.CloseComments(ctx, postID, closed)
+	//post, err := r.Store.CloseComments(ctx, postID, closed)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//
+	//if post == nil {
+	//	return nil, errors.New("post not found")
+	//}
+	//
+	//cu := currentUserName(ctx)
+	//if cu == "" || cu != post.Author {
+	//	return nil, errors.New("forbidden: only post author can toggle comments")
+	//}
+	//
+	//return post, nil
+
+	post, err := r.Store.GetPost(ctx, postID)
+
 	if err != nil {
 		return nil, err
 	}
-
 	if post == nil {
 		return nil, errors.New("post not found")
 	}
@@ -57,6 +73,11 @@ func (r *mutationResolver) ToggleCommentsClosed(ctx context.Context, postID stri
 	cu := currentUserName(ctx)
 	if cu == "" || cu != post.Author {
 		return nil, errors.New("forbidden: only post author can toggle comments")
+	}
+
+	post, err = r.Store.CloseComments(ctx, postID, closed)
+	if err != nil {
+		return nil, err
 	}
 
 	return post, nil
