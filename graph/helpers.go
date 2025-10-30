@@ -8,13 +8,6 @@ import (
 
 const maxCommentLen = 2000
 
-//func currentUserName(ctx context.Context) string {
-//	if u := auth.FromContext(ctx); u != nil {
-//		return u.Name
-//	}
-//	return "" // гость
-//}
-
 func (r *Resolver) CommentsCount(ctx context.Context, post *model.Post) (int, error) {
 	if post.CommentsCount != 0 {
 		return post.CommentsCount, nil
