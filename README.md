@@ -141,7 +141,7 @@ mutation {
 
 Добавляет вложеннный комментарий к комментарию с ID `parentId`, если он указан.
 
-Если commentsClosed == true, сервер возвращает ошибку `comments are closed for this post`.
+Если `commentsClosed == true`, сервер возвращает ошибку `comments are closed for this post`.
 
 ````graphql
 # Add root comment
@@ -173,7 +173,7 @@ mutation {
 }
 ````
 
-#### `toggleCommentsClosed(postId: ID!, closed: Boolean!): Post!`
+#### `toggleCommentsClosed(postId: ID!, closed: Boolean!, user: String!): Post!`
 
 Позволяет только автору поста запретить или разрешить комментарии.
 Если пользователь не является автором поста — возвращается ошибка:
@@ -182,7 +182,7 @@ mutation {
 
 ````graphql
 mutation {
-    toggleCommentsClosed(postId: <post Id>, closed: <true | false>) {
+    toggleCommentsClosed(postId: <post Id>, closed: <true | false>, user: <username>!) {
         id
         postID
         parentID
@@ -213,28 +213,6 @@ subscription {
     }
 }
 ````
-
-### Авторизация и контекст
-
-Каждый HTTP-запрос должен содержать заголовок:
-
-`X-User: <username>`
-
-Middleware добавляет `username` в `context.Context`.
-
-Все мутации используют контекст для определения текущего пользователя.
-
-#### Пример HTTP-запроса
-
-```http request
-POST http://localhost:8080/query
-Content-Type: application/json
-X-User: alice
-
-{
-"query": "mutation { toggleCommentsClosed(postId: \"76867879-88b9-4f33-a14c-ebda0cf659ba\", closed: true) { id author body createdAt } }"
-}
-```
 
 ## Запуск
 
